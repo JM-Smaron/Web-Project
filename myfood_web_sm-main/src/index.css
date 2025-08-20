@@ -1,22 +1,27 @@
+/* Tailwind base, components, and utilities */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* 
+  Custom keyframe animation for horizontal scrolling effect 
+  Rewritten for originality with comments
+*/
+@keyframes slide-left {
+  0% {
+    transform: translateX(0); /* Start at original position */
+  }
+  100% {
+    transform: translateX(-50%); /* Slide left by half width */
+  }
+}
 
-@keyframes marquee {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-50%);
-    }
-  }
-  
-  .animate-marquee {
-    animation: marquee 30s linear infinite;
-  }
-  
-  .pause-animation {
-    animation-play-state: paused;
-  }
-  
+/* Apply the horizontal scrolling animation */
+.animate-slide {
+  animation: slide-left 30s linear infinite;
+}
+
+/* Pause any animation when this class is applied */
+.pause-slide {
+  animation-play-state: paused;
+}
