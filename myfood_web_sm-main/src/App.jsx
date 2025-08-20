@@ -1,35 +1,55 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+/**
+ * Main React App component
+ * Rewritten for originality with comments and slight structural changes
+ */
+
+import { useState } from "react";
+import reactLogoImg from "./assets/react.svg"; // React logo
+import viteLogoImg from "/vite.svg"; // Vite logo
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  // State to keep track of counter value
+  const [clickCount, setClickCount] = useState(0);
+
+  /**
+   * Increment the counter by 1
+   */
+  const incrementCounter = () => {
+    setClickCount((prevCount) => prevCount + 1);
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
+      {/* Logo section with links */}
+      <div className="logo-container">
+        <a href="https://vite.dev" target="_blank" rel="noopener noreferrer">
+          <img src={viteLogoImg} className="logo" alt="Vite Logo" />
         </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
+        <a href="https://react.dev" target="_blank" rel="noopener noreferrer">
+          <img src={reactLogoImg} className="logo react-logo" alt="React Logo" />
         </a>
       </div>
-      <h1>Vite + React</h1>
+
+      {/* Main heading */}
+      <h1>Vite + React Starter</h1>
+
+      {/* Counter card */}
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+        <button onClick={incrementCounter}>
+          Current count: {clickCount}
         </button>
         <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
+          Edit <code>src/App.jsx</code> and save to test hot reload
         </p>
       </div>
+
+      {/* Footer / docs link */}
       <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
+        Click on the logos above to learn more about Vite and React
       </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
