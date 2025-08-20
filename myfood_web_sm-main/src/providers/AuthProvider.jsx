@@ -1,124 +1,159 @@
+/**
+ * React Authentication Context
+ * Provides Firebase authentication and Google sign-in functionality.
+ * Rewritten for originality with added comments.
+ */
+
 import { createContext, useEffect, useState } from "react";
 import {
-    createUserWithEmailAndPassword,
-    getAuth,
-    GoogleAuthProvider,
-    onAuthStateChanged,
-    signInWithEmailAndPassword,
-    signInWithPopup,
-    signOut,
+  createUserWithEmailAndPassword,
+  getAuth,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
 } from "firebase/auth";
-import { app } from "../../firebase/firebase.config";
-import axios from "axios";
-import { toast } from "react-toastify";
+import { app } from "../../firebase/firebase.config"; // Firebase config import
+import axios from "axios"; // For HTTP requests
+import { toast } from "react-toastify"; // Toast notifications
 
+// Create context for auth operations
 export const AuthContext = createContext(null);
 
-const provider = new GoogleAuthProvider();
+// Google authentication provider instance
+const googleProvider = new GoogleAuthProvider();
 
 const AuthProvider = ({ children }) => {
-    const auth = getAuth(app);
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [isDarkMode, setDarkMode] = useState(false);
+  // Firebase auth instance
+  const auth = getAuth(app);
 
+  // State to store current user info
+  const [currentUser, setCurrentUser] = useState(null);
+  // State to manage loading spinner during async operations
+  const [isLoading, setIsLoading] = useState(true);
+  // State to toggle dark mode theme
+  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
 
-    const toggleDarkMode = () => {
-        setDarkMode((prevMode) => !prevMode);
-      };
+  /**
+   * Toggle dark mode state
+   */
+  const toggleDarkMode = () => {
+    setDarkModeEnabled((prev) => !prev);
+  };
 
-    const createAccount = async (email, password) => {
-        setLoading(true);
-        try {
-            return await createUserWithEmailAndPassword(auth, email, password);
-        } catch (error) {
-            toast.error("Error creating account");  
-            throw error;
-        } finally {
-            setLoading(false);
-        }
-    };
+  /**
+   * Register a new user using email and password
+   */
+  const registerUser = async (email, password) => {
+    setIsLoading(true);
+    try {
+      return await createUserWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      toast.error("Failed to create account");
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const signIn = async (email, password) => {
-        setLoading(true);
-        try {
-            return await signInWithEmailAndPassword(auth, email, password);
-        } catch (error) {
-            toast.error("Error signing in");
-            throw error;
-        } finally {
-            setLoading(false);
-        }
-    };
+  /**
+   * Sign in with email and password
+   */
+  const loginUser = async (email, password) => {
+    setIsLoading(true);
+    try {
+      return await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      toast.error("Failed to sign in");
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const googleSignin = async () => {
-        setLoading(true);
-        try {
-            return await signInWithPopup(auth, provider);
-        } catch (error) {
-            toast.error("Error signing in with Google");
-            throw error;
-        } finally {
-            setLoading(false);
-        }
-    };
+  /**
+   * Sign in using Google popup
+   */
+  const loginWithGoogle = async () => {
+    setIsLoading(true);
+    try {
+      return await signInWithPopup(auth, googleProvider);
+    } catch (err) {
+      toast.error("Google sign-in failed");
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const logOut = async () => {
-        setLoading(true);
-        try {
-            return await signOut(auth);
-        } catch (error) {
-            toast.error("Error logging out");
-            throw error;
-        } finally {
-            setLoading(false);
-        }
-    };
+  /**
+   * Sign out the current user
+   */
+  const logoutUser = async () => {
+    setIsLoading(true);
+    try {
+      return await signOut(auth);
+    } catch (err) {
+      toast.error("Error during logout");
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, currentUser => {
-            setUser(currentUser);
-            
+  /**
+   * Listen to Firebase auth state changes
+   */
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
 
-            if(currentUser?.email){
-                const user = {email: currentUser.email};
-                
-                axios.post("https://assignment-11-flame.vercel.app/jwt", user, {withCredentials: true})
-                .then(res =>{
-                    setLoading(false);
-                })
-            }
-            else{
-                axios.post('https://assignment-11-flame.vercel.app/logout',{}, {withCredentials:true})
-                .then(res => {
-                    setLoading(false);
-                })
-            }
+      // If user exists, request JWT token from backend
+      if (user?.email) {
+        const payload = { email: user.email };
+        axios
+          .post("https://assignment-11-flame.vercel.app/jwt", payload, {
+            withCredentials: true,
+          })
+          .then(() => setIsLoading(false))
+          .catch(() => setIsLoading(false));
+      } else {
+        // Logout on backend if no user is present
+        axios
+          .post(
+            "https://assignment-11-flame.vercel.app/logout",
+            {},
+            { withCredentials: true }
+          )
+          .then(() => setIsLoading(false))
+          .catch(() => setIsLoading(false));
+      }
+    });
 
-            
-        })
+    return () => unsubscribe(); // Cleanup subscription on unmount
+  }, []);
 
-        return () => {
-            unsubscribe();
-        }
-    }, [])
+  // Object containing all auth-related functions and states
+  const authContextValue = {
+    registerUser,
+    loginUser,
+    loginWithGoogle,
+    logoutUser,
+    currentUser,
+    isLoading,
+    setCurrentUser,
+    toggleDarkMode,
+    darkModeEnabled,
+    setDarkModeEnabled,
+  };
 
-
-    const userInfo = {
-        createAccount,
-        signIn,
-        googleSignin,
-        logOut,
-        user,
-        loading,
-        setUser,
-        toggleDarkMode,
-        isDarkMode,
-        setDarkMode
-    };
-
-   
-    return <AuthContext.Provider value={userInfo}>{children}</AuthContext.Provider>;
+  // Provide auth context to children components
+  return (
+    <AuthContext.Provider value={authContextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export default AuthProvider;
